@@ -1,3 +1,10 @@
+/** WebGazer.js: Scalable Webcam EyeTracking Using User Interactions 
+ * 
+ * Copyright (c) 2016, Brown HCI Group 
+
+* Licensed under GPLv3. Companies with a valuation of less than $10M can use WebGazer.js under LGPLv3. 
+*/
+
 /**
  * Real-time object detector based on the Viola Jones Framework.
  * Compatible to OpenCV Haar Cascade Classifiers (stump based only).
@@ -4755,7 +4762,7 @@ var clm = {
 		var responseIndex = 0;
 		
 		/*
-		It's possible to study with the sequence of variances used for the finding the maximum in the KDE.
+		It's possible to experiment with the sequence of variances used for the finding the maximum in the KDE.
 		This sequence is pretty arbitrary, but was found to be okay using some manual testing.
 		*/
 		var varianceSeq = [10,5,1];
@@ -4911,7 +4918,7 @@ var clm = {
 				var webGLContext;
 				var webGLTestCanvas = document.createElement('canvas');
 				if (window.WebGLRenderingContext) {
-					webGLContext = webGLTestCanvas.getContext('webgl') || webGLTestCanvas.getContext('studyal-webgl');
+					webGLContext = webGLTestCanvas.getContext('webgl') || webGLTestCanvas.getContext('experimental-webgl');
 					if (!webGLContext || !webGLContext.getExtension('OES_texture_float')) {
 						webGLContext = null;
 					}
@@ -7253,7 +7260,7 @@ var webglFilter = function() {
    * @return {!WebGLContext} The created context.
    */
   var create3DContext = function(canvas, opt_attribs) {
-    var names = ["webgl", "studyal-webgl"];
+    var names = ["webgl", "experimental-webgl"];
     var context = null;
     for (var ii = 0; ii < names.length; ++ii) {
       try {
@@ -10373,6 +10380,7 @@ var mosseFilterResponses = function() {
 }());
 
 (function(window, undefined) {
+    console.log('initializing webgazer');
     //strict mode for type safety
     "use strict";
 
@@ -10403,17 +10411,17 @@ var mosseFilterResponses = function() {
     //debug control boolean
     var showGazeDot = false;
     //debug element (starts offscreen)
-    var gazeDot = document.getElementById('gazeDot');
-    // gazeDot.style.position = 'fixed';
-    // gazeDot.style.zIndex = 99999;
-    // gazeDot.style.left = '-5px'; //'-999em';
-    // gazeDot.style.top  = '-5px';
-    // gazeDot.style.width = '10px';
-    // gazeDot.style.height = '10px';
-    // gazeDot.style.background = 'red';
-    // gazeDot.style.display = 'none';
-    // gazeDot.style.borderRadius = '100%';
-    // gazeDot.style.opacity = '0.7';
+    var gazeDot = document.createElement('div');
+    gazeDot.style.position = 'fixed';
+    gazeDot.style.zIndex = 99999;
+    gazeDot.style.left = '-5px'; //'-999em';
+    gazeDot.style.top  = '-5px';
+    gazeDot.style.width = '10px';
+    gazeDot.style.height = '10px';
+    gazeDot.style.background = 'red';
+    gazeDot.style.display = 'none';
+    gazeDot.style.borderRadius = '100%';
+    gazeDot.style.opacity = '0.7';
 
     var debugVideoLoc = '';
 
@@ -10617,7 +10625,7 @@ var mosseFilterResponses = function() {
         //third argument set to true so that we get event on 'capture' instead of 'bubbling'
         //this prevents a client using event.stopPropagation() preventing our access to the click
         document.addEventListener('click', clickListener, true);
-        // document.addEventListener('mousemove', moveListener, true);
+        document.addEventListener('mousemove', moveListener, true);
     };
 
     /**
@@ -10673,22 +10681,21 @@ var mosseFilterResponses = function() {
         videoElement = document.createElement('video');
         videoElement.id = webgazer.params.videoElementId;
         videoElement.autoplay = true;
+        console.log(videoElement);
         videoElement.style.display = 'none';
 
         //turn the stream into a magic URL
         videoElement.src = videoSrc;
-        $('#tracking-video-target').append(videoElement);
-        // document.body.appendChild(videoElement);
+        document.body.appendChild(videoElement);
 
         videoElementCanvas = document.createElement('canvas');
         videoElementCanvas.id = webgazer.params.videoElementCanvasId;
         videoElementCanvas.style.display = 'none';
-        $('#tracking-video-target').append(videoElementCanvas);
-        // document.body.appendChild(videoElementCanvas);
+        document.body.appendChild(videoElementCanvas);
 
         addMouseEventListeners();
-        // $('#tracking-video-target').append(gazeDot);
-        // document.body.appendChild(gazeDot);
+
+        document.body.appendChild(gazeDot);
 
         //BEGIN CALLBACK LOOP
         paused = false;
@@ -10727,6 +10734,7 @@ var mosseFilterResponses = function() {
             //request webcam access
             navigator.getUserMedia(options,
                     function(stream){
+                        console.log('video stream created');
                         init(window.URL.createObjectURL(stream));
                     },
                     function(e){
@@ -10738,7 +10746,7 @@ var mosseFilterResponses = function() {
             alert("Unfortunately, your browser does not support access to the webcam through the getUserMedia API. Try to use Google Chrome, Mozilla Firefox, Opera, or Microsoft Edge instead.");
         }
         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.chrome){
-            // alert("WebGazer works only over https. If you are doing local development you need to run a local server.");
+            alert("WebGazer works only over https. If you are doing local development you need to run a local server.");
         }
 
         return webgazer;
@@ -10907,7 +10915,7 @@ var mosseFilterResponses = function() {
      */
     webgazer.addTrackerModule = function(name, constructor) {
         curTrackerMap[name] = function() {
-            contructor();
+            return new constructor();
         };
     };
 
@@ -10918,7 +10926,7 @@ var mosseFilterResponses = function() {
      */
     webgazer.addRegressionModule = function(name, constructor) {
         regressionMap[name] = function() {
-            contructor();
+            return new constructor();
         };
     };
     
